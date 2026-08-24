@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Desconto</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #f5f5f4;
+    margin: 0;
+    padding: 40px 16px;
+    display: flex;
+    justify-content: center;
+    color: #1f1f1e;
+  }
+  .card {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06);
+    padding: 32px;
+    width: 100%;
+    max-width: 440px;
+  }
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 24px;
+    text-align: center;
+  }
+  label {
+    font-size: 14px;
+    color: #57534e;
+    display: block;
+    margin-bottom: 6px;
+  }
+  input[type="number"] {
+    width: 100%;
+    height: 44px;
+    border: 1px solid #d6d3d1;
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  input[type="number"]:focus {
+    border-color: #57534e;
+  }
+  .error {
+    font-size: 13px;
+    color: #dc2626;
+    margin: 6px 0 0;
+    display: none;
+  }
+  .box-group {
+    margin-top: 20px;
+  }
+  .payment-group {
+    margin-top: 20px;
+  }
+  .payment-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .payment-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 8px;
+    border: 1.5px solid #d6d3d1;
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .payment-btn:hover {
+    background: #fafaf9;
+  }
+  .payment-btn.selected {
+    border-color: #292524;
+    border-width: 2px;
+  }
+  .payment-btn .icon {
+    font-size: 22px;
+  }
+  .payment-btn .name {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .payment-btn .pct {
+    font-size: 12px;
+    color: #78716c;
+  }
+  .results {
+    margin-top: 24px;
+    background: #f5f5f4;
+    border-radius: 10px;
+    padding: 16px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .results .label {
+    font-size: 12px;
+    color: #78716c;
+    margin: 0 0 4px;
+  }
+  .results .value {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+  }
+  .results .value.total {
+    font-size: 20px;
+  }
+  .results .value.desconto {
+    color: #16a34a;
+  }
+  .parcela {
+    font-size: 13px;
+    color: #57534e;
+    margin: 10px 0 0;
+    text-align: center;
+    display: none;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Calculadora de desconto</h1>
+
+    <label for="valor">Valor por unidade (R$)</label>
+    <input type="number" id="valor" min="0" step="0.01" placeholder="0,00">
+    <p class="error" id="err">Informe um valor maior que zero.</p>
+
+    <div class="box-group">
+      <label>Caixa</label>
+      <div class="payment-options">
+        <button type="button" class="payment-btn selected" id="btn-caixa24" aria-pressed="true">
+          <span class="icon">📦</span>
+          <span class="name">Caixa com 24 unidades</span>
+        </button>
+        <button type="button" class="payment-btn" id="btn-caixa12" aria-pressed="false">
+          <span class="icon">📦</span>
+          <span class="name">Caixa com 12 unidades</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="payment-group">
+      <label>Forma de pagamento</label>
+      <div class="payment-options">
+        <button type="button" class="payment-btn selected" id="btn-pix" aria-pressed="true">
+          <span class="icon">📱</span>
+          <span class="name">Pix / Débito</span>
+          <span class="pct">18% off</span>
+        </button>
+        <button type="button" class="payment-btn" id="btn-credito" aria-pressed="false">
+          <span class="icon">💳</span>
+          <span class="name">Crédito até 3x</span>
+          <span class="pct">15% off</span>
+        </button>
+      </div>
+    </div>
+
+    <p class="parcela" id="out-subtotal" style="margin-top:16px;"></p>
+
+    <div class="results">
+      <div>
+        <p class="label">Valor original</p>
+        <p class="value" id="out-original">R$ 0,00</p>
+      </div>
+      <div>
+        <p class="label">Desconto</p>
+        <p class="value desconto" id="out-desconto">R$ 0,00</p>
+      </div>
+      <div>
+        <p class="label">Total a pagar</p>
+        <p class="value total" id="out-total">R$ 0,00</p>
+      </div>
+    </div>
+
+    <p class="parcela" id="out-parcela"></p>
+    <p class="parcela" id="out-unidade"></p>
+  </div>
+
+<script>
+  var valorInput = document.getElementById('valor');
+  var err = document.getElementById('err');
+  var btnCaixa24 = document.getElementById('btn-caixa24');
+  var btnCaixa12 = document.getElementById('btn-caixa12');
+  var caixaSelecionada = '24';
+  var btnPix = document.getElementById('btn-pix');
+  var btnCredito = document.getElementById('btn-credito');
+  var outOriginal = document.getElementById('out-original');
+  var outDesconto = document.getElementById('out-desconto');
+  var outTotal = document.getElementById('out-total');
+  var outParcela = document.getElementById('out-parcela');
+  var outSubtotal = document.getElementById('out-subtotal');
+  var outUnidade = document.getElementById('out-unidade');
+  var selected = 'pix';
+
+  function fmt(n) {
+    return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+
+  function setSelected(which) {
+    selected = which;
+    btnPix.classList.toggle('selected', which === 'pix');
+    btnPix.setAttribute('aria-pressed', which === 'pix');
+    btnCredito.classList.toggle('selected', which === 'credito');
+    btnCredito.setAttribute('aria-pressed', which === 'credito');
+    calc();
+  }
+
+  function calc() {
+    var raw = valorInput.value.replace(',', '.');
+    var valorUnidade = parseFloat(raw);
+
+    if (!valorUnidade || valorUnidade <= 0) {
+      err.style.display = 'block';
+      outSubtotal.style.display = 'none';
+      outOriginal.textContent = fmt(0);
+      outDesconto.textContent = fmt(0);
+      outTotal.textContent = fmt(0);
+      outParcela.style.display = 'none';
+      return;
+    }
+
+    err.style.display = 'none';
+    var qtd = caixaSelecionada === '24' ? 24 : 12;
+    var valor = valorUnidade * qtd;
+
+    outSubtotal.style.display = 'block';
+    outSubtotal.textContent = fmt(valorUnidade) + ' x ' + qtd + ' unidades = ' + fmt(valor);
+
+    var pct = selected === 'pix' ? 18 : 15;
+    var desconto = valor * (pct / 100);
+    var total = valor - desconto;
+
+    outOriginal.textContent = fmt(valor);
+    outDesconto.textContent = '- ' + fmt(desconto);
+    outTotal.textContent = fmt(total);
+
+    if (selected === 'credito') {
+      var parcela = total / 3;
+      outParcela.textContent = '3x de ' + fmt(parcela) + ' sem juros';
+      outParcela.style.display = 'block';
+    } else {
+      outParcela.style.display = 'none';
+    }
+
+    if (selected === 'pix') {
+      var unidadeComDesconto = valorUnidade * (1 - pct / 100);
+      outUnidade.textContent = 'Cada unidade sai por ' + fmt(unidadeComDesconto);
+      outUnidade.style.display = 'block';
+    } else if (selected === 'credito') {
+      var unidadeComDescontoCredito = valorUnidade * (1 - pct / 100);
+      outUnidade.textContent = 'Cada unidade sai por ' + fmt(unidadeComDescontoCredito);
+      outUnidade.style.display = 'block';
+    } else {
+      outUnidade.style.display = 'none';
+    }
+  }
+
+  function setCaixa(which) {
+    caixaSelecionada = which;
+    btnCaixa24.classList.toggle('selected', which === '24');
+    btnCaixa24.setAttribute('aria-pressed', which === '24');
+    btnCaixa12.classList.toggle('selected', which === '12');
+    btnCaixa12.setAttribute('aria-pressed', which === '12');
+    calc();
+  }
+
+  valorInput.addEventListener('input', calc);
+  btnPix.addEventListener('click', function() { setSelected('pix'); });
+  btnCredito.addEventListener('click', function() { setSelected('credito'); });
+  btnCaixa24.addEventListener('click', function() { setCaixa('24'); });
+  btnCaixa12.addEventListener('click', function() { setCaixa('12'); });
+
+  setCaixa('24');
+  setSelected('pix');
+</script>
+</body>
+</html>
