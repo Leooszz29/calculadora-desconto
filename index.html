@@ -133,21 +133,25 @@
 <body>
   <div class="card">
     <h1>Calculadora de desconto</h1>
-
+ 
     <label for="valor">Valor por unidade (R$)</label>
     <input type="number" id="valor" min="0" step="0.01" placeholder="0,00">
     <p class="error" id="err">Informe um valor maior que zero.</p>
-
+ 
     <div class="box-group">
       <label>Caixa</label>
-      <div class="payment-options" style="grid-template-columns: 1fr;">
+      <div class="payment-options">
         <button type="button" class="payment-btn selected" id="btn-caixa24" aria-pressed="true">
           <span class="icon">📦</span>
           <span class="name">Caixa com 24 unidades</span>
         </button>
+        <button type="button" class="payment-btn" id="btn-caixa12" aria-pressed="false">
+          <span class="icon">📦</span>
+          <span class="name">Caixa com 12 unidades</span>
+        </button>
       </div>
     </div>
-
+ 
     <div class="payment-group">
       <label>Forma de pagamento</label>
       <div class="payment-options">
@@ -163,9 +167,9 @@
         </button>
       </div>
     </div>
-
+ 
     <p class="parcela" id="out-subtotal" style="margin-top:16px;"></p>
-
+ 
     <div class="results">
       <div>
         <p class="label">Valor original</p>
@@ -180,15 +184,16 @@
         <p class="value total" id="out-total">R$ 0,00</p>
       </div>
     </div>
-
+ 
     <p class="parcela" id="out-parcela"></p>
     <p class="parcela" id="out-unidade"></p>
   </div>
-
+ 
 <script>
   var valorInput = document.getElementById('valor');
   var err = document.getElementById('err');
   var btnCaixa24 = document.getElementById('btn-caixa24');
+  var btnCaixa12 = document.getElementById('btn-caixa12');
   var caixaSelecionada = '24';
   var btnPix = document.getElementById('btn-pix');
   var btnCredito = document.getElementById('btn-credito');
@@ -199,11 +204,11 @@
   var outSubtotal = document.getElementById('out-subtotal');
   var outUnidade = document.getElementById('out-unidade');
   var selected = 'pix';
-
+ 
   function fmt(n) {
     return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
-
+ 
   function setSelected(which) {
     selected = which;
     btnPix.classList.toggle('selected', which === 'pix');
@@ -212,11 +217,11 @@
     btnCredito.setAttribute('aria-pressed', which === 'credito');
     calc();
   }
-
+ 
   function calc() {
     var raw = valorInput.value.replace(',', '.');
     var valorUnidade = parseFloat(raw);
-
+ 
     if (!valorUnidade || valorUnidade <= 0) {
       err.style.display = 'block';
       outSubtotal.style.display = 'none';
@@ -226,22 +231,22 @@
       outParcela.style.display = 'none';
       return;
     }
-
+ 
     err.style.display = 'none';
     var qtd = caixaSelecionada === '24' ? 24 : 12;
     var valor = valorUnidade * qtd;
-
+ 
     outSubtotal.style.display = 'block';
     outSubtotal.textContent = fmt(valorUnidade) + ' x ' + qtd + ' unidades = ' + fmt(valor);
-
+ 
     var pct = selected === 'pix' ? 18 : 15;
     var desconto = valor * (pct / 100);
     var total = valor - desconto;
-
+ 
     outOriginal.textContent = fmt(valor);
     outDesconto.textContent = '- ' + fmt(desconto);
     outTotal.textContent = fmt(total);
-
+ 
     if (selected === 'credito') {
       var parcela = total / 3;
       outParcela.textContent = '3x de ' + fmt(parcela) + ' sem juros';
@@ -249,30 +254,38 @@
     } else {
       outParcela.style.display = 'none';
     }
-
+ 
     if (selected === 'pix') {
       var unidadeComDesconto = valorUnidade * (1 - pct / 100);
       outUnidade.textContent = 'Cada unidade sai por ' + fmt(unidadeComDesconto);
+      outUnidade.style.display = 'block';
+    } else if (selected === 'credito') {
+      var unidadeComDescontoCredito = valorUnidade * (1 - pct / 100);
+      outUnidade.textContent = 'Cada unidade sai por ' + fmt(unidadeComDescontoCredito);
       outUnidade.style.display = 'block';
     } else {
       outUnidade.style.display = 'none';
     }
   }
-
+ 
   function setCaixa(which) {
     caixaSelecionada = which;
     btnCaixa24.classList.toggle('selected', which === '24');
     btnCaixa24.setAttribute('aria-pressed', which === '24');
+    btnCaixa12.classList.toggle('selected', which === '12');
+    btnCaixa12.setAttribute('aria-pressed', which === '12');
     calc();
   }
-
+ 
   valorInput.addEventListener('input', calc);
   btnPix.addEventListener('click', function() { setSelected('pix'); });
   btnCredito.addEventListener('click', function() { setSelected('credito'); });
   btnCaixa24.addEventListener('click', function() { setCaixa('24'); });
-
+  btnCaixa12.addEventListener('click', function() { setCaixa('12'); });
+ 
   setCaixa('24');
   setSelected('pix');
 </script>
 </body>
 </html>
+ 
